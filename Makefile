@@ -21,6 +21,7 @@ deploy:
 clean:
 	echo "Cleaning legacy files..."
 	$(MVNCLEAN)
+	rm -rf bin/
 
 unit-test:
 	echo "Running unit tests for [simple-dynamo]..."
