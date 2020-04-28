@@ -8,7 +8,7 @@ all: clean unit-test build deploy
 
 build:
 	echo "Starting to build [simple-dynamo]..."
-	MVNPACKAGE
+	$(MVNPACKAGE)
 
 deploy:
 	echo "Copying all executables to bin/ ..."
@@ -20,8 +20,8 @@ deploy:
 
 clean:
 	echo "Cleaning legacy files..."
-	MVNCLEAN
+	$(MVNCLEAN)
 
 unit-test:
 	echo "Running unit tests for [simple-dynamo]..."
-	MVNTEST
+	$(MVNTEST)
