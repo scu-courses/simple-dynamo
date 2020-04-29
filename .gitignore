@@ -38,3 +38,7 @@ buildNumber.properties
 # intellij gitignore
 .idea/
 *.iml
+
+.project
+.settings/
+.classpath
