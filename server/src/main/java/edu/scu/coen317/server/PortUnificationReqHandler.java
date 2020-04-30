@@ -1,5 +1,8 @@
 package edu.scu.coen317.server;
 
+import edu.scu.coen317.common.message.client.codec.GetRequestDecoder;
+import edu.scu.coen317.common.message.client.codec.GetResponseEncoder;
+import edu.scu.coen317.server.request.ClientRequestHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
@@ -17,5 +20,13 @@ public class PortUnificationReqHandler extends ByteToMessageDecoder {
         }
 
 
+    }
+
+    private void processClientRequest(ChannelHandlerContext ctx) {
+        ChannelPipeline cp = ctx.pipeline();
+        cp.addLast(new GetRequestDecoder());
+        cp.addLast(new ClientRequestHandler());
+        cp.addLast(new GetResponseEncoder());
+        cp.remove(this);
     }
 }
