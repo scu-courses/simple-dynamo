@@ -3,16 +3,12 @@ package edu.scu.coen317.common.message.client;
 import edu.scu.coen317.common.message.MessageType;
 
 public class PutRequest {
-    private static final MessageType type = MessageType.PUT;
+    public static final MessageType TYPE = MessageType.PUT;
     String key, val;
 
     public PutRequest(String key, String val) {
         this.key = key;
         this.val = val;
-    }
-
-    public MessageType getType() {
-        return type;
     }
 
     public String getKey() {
