@@ -38,4 +38,9 @@ public class DynamoNode {
             connGroup.shutdownGracefully();
         }
     }
+
+    public static void main(String[] args) throws Exception {
+        NodeConf conf = new NodeConf(8080, "", false);
+        new DynamoNode(conf).run();
+    }
 }

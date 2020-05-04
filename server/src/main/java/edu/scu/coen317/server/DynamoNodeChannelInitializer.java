@@ -7,6 +7,7 @@ public class DynamoNodeChannelInitializer extends ChannelInitializer<SocketChann
 
     @Override
     protected void initChannel(SocketChannel sc) throws Exception {
+        System.out.println("DynamoNodeChannelInitializer");
         sc.pipeline().addLast(new PortUnificationReqHandler());
     }
 }

@@ -10,8 +10,9 @@ import io.netty.handler.codec.MessageToByteEncoder;
 public class ClientResponseEncoder extends MessageToByteEncoder<ClientResponse> {
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, ClientResponse clientResponse, ByteBuf byteBuf) throws Exception {
+        System.out.println("Response encoder");
         byteBuf.writeInt(clientResponse.getType().ordinal());
-        if (clientResponse.getType() == MessageType.PUT_REPLY) {
+        if (clientResponse.getType() == MessageType.GET_REPLY) {
             byteBuf.writeInt(clientResponse.getVal().length());
             byteBuf.writeCharSequence(clientResponse.getVal(), Configuration.CHARSET);
         }
