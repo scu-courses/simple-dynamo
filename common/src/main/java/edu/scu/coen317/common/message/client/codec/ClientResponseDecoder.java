@@ -12,7 +12,6 @@ import java.util.List;
 public class ClientResponseDecoder extends ReplayingDecoder<ClientResponse> {
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
-        System.out.println("Response decoding");
         MessageType type = MessageType.values()[byteBuf.readInt()];
         ClientResponse resp = new ClientResponse(type);
         if (type == MessageType.GET_REPLY) {

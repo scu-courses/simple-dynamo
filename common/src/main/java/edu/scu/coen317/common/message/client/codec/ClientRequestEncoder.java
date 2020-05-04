@@ -10,7 +10,6 @@ import io.netty.handler.codec.MessageToByteEncoder;
 public class ClientRequestEncoder extends MessageToByteEncoder<ClientRequest> {
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, ClientRequest clientRequest, ByteBuf byteBuf) throws Exception {
-        System.out.println("Request Encoder");
         byteBuf.writeInt(clientRequest.getType().ordinal());
         byteBuf.writeInt(clientRequest.getKey().length());
         byteBuf.writeCharSequence(clientRequest.getKey(), Configuration.CHARSET);

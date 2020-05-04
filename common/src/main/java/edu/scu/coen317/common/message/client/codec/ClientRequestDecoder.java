@@ -12,7 +12,6 @@ import java.util.List;
 public class ClientRequestDecoder extends ReplayingDecoder<ClientRequest> {
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
-        System.out.println("Request Decoder");
         MessageType type = MessageType.values()[byteBuf.readInt()];
         int keyLen = byteBuf.readInt();
         String key = byteBuf.readCharSequence(keyLen, Configuration.CHARSET).toString();
