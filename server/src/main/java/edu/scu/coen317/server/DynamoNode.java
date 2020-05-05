@@ -1,5 +1,7 @@
 package edu.scu.coen317.server;
 
+import edu.scu.coen317.common.model.Node;
+import edu.scu.coen317.common.util.NodeGlobalView;
 import edu.scu.coen317.server.conf.NodeConf;
 import edu.scu.coen317.server.persist.InMemoryKVStore;
 import edu.scu.coen317.server.persist.KVStore;
@@ -10,13 +12,43 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class DynamoNode {
-    private NodeConf conf;
+    private static final Logger LOG = LoggerFactory.getLogger(DynamoNode.class);
+
     public static final KVStore KVSTORE = new InMemoryKVStore();
+    public static final ConcurrentSkipListSet<Node> MEMBERS = new ConcurrentSkipListSet<>();
+
+    private NodeConf conf;
 
     public DynamoNode(NodeConf conf) {
         this.conf = conf;
+        init();
+    }
+
+    private void init() {
+        // update membership list
+        if (conf.isSeed()) {
+            initMemListFromSeedFile();
+        } else {
+            Node self = new Node(conf.getIp(), conf.getPort(), conf.getHash());
+            MEMBERS.add(self);
+        }
+    }
+
+    private void initMemListFromSeedFile() {
+        try {
+            NodeGlobalView view = new NodeGlobalView();
+            ConcurrentSkipListSet<Node> allNodes = view.readAll();
+            MEMBERS.addAll(allNodes);
+        } catch (IOException ioe) {
+            LOG.error("Having trouble reading node list file, init as empty...");
+        }
     }
 
     public void run() throws Exception {
@@ -43,7 +75,7 @@ public class DynamoNode {
     }
 
     public static void main(String[] args) throws Exception {
-        NodeConf conf = new NodeConf(8080, "", false);
+        NodeConf conf = new NodeConf("127.0.0.1", 8080, "", "",true);
         new DynamoNode(conf).run();
     }
 }

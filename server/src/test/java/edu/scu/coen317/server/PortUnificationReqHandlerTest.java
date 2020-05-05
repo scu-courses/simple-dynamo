@@ -68,4 +68,12 @@ public class PortUnificationReqHandlerTest {
         assertEquals("val", out.readCharSequence(3, Configuration.CHARSET));
         channel.close();
     }
+
+//    @Test
+//    public void test() {
+//        HashFunction hf = Hashing.md5();
+//        HashCode hc = hf.newHasher().putLong(1234).hash();
+//        System.out.println(hc.toString());
+//        System.out.println(HashFunctions.randomMD5());
+//    }
 }
