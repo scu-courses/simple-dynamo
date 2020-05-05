@@ -49,4 +49,34 @@ public class Node implements Comparable<Node> {
     public int compareTo(Node that) {
         return this.hash.compareTo(that.hash);
     }
+
+    @Override
+    public int hashCode() {
+        int h = 17;
+        h = 31 * h + ip.hashCode();
+        h = 31 * h + port;
+        h = 31 * h + hash.hashCode();
+        h = 31 * h + (alive ? 1 : 0);
+        return h;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        Node that = (Node) obj;
+        return  this.hashCode() == that.hashCode() &&
+                this.ip.equals(that.ip) &&
+                this.port == that.port &&
+                this.hash.equals(that.hash);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(hash);
+        sb.append(",");
+        sb.append(ip);
+        sb.append(",");
+        sb.append(port);
+        return sb.toString();
+    }
 }

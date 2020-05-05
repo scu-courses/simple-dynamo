@@ -5,7 +5,7 @@ import edu.scu.coen317.common.model.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,11 +15,13 @@ import java.util.concurrent.ConcurrentSkipListSet;
 public class NodeGlobalView {
     private static final Logger LOG = LoggerFactory.getLogger(NodeGlobalView.class);
 
-    public void addNode() throws IOException {
-
+    public void addNode(Node node) throws IOException {
+        ConcurrentSkipListSet<Node> nodes = readAll();
+        nodes.add(node);
+        syncFile(nodes);
     }
 
-    public void removeNode() throws IOException {
+    public void removeNode() {
         // currently unsupported
         throw new UnsupportedOperationException();
     }
@@ -41,5 +43,19 @@ public class NodeGlobalView {
             nodes.add(node);
         }
         return nodes;
+    }
+
+    private void syncFile(ConcurrentSkipListSet<Node> nodes) throws IOException {
+        File file = new File(Configuration.NODE_LIST);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        
+        FileWriter fw = new FileWriter(file);
+        PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
+        for (Node node : nodes) {
+            pw.println(node.toString());
+        }
+        pw.close();
     }
 }
