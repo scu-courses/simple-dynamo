@@ -8,10 +8,14 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class PortUnificationReqHandler extends ByteToMessageDecoder {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PortUnificationReqHandler.class);
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) throws Exception {
@@ -21,6 +25,7 @@ public class PortUnificationReqHandler extends ByteToMessageDecoder {
         }
 
         MessageType type = MessageType.values()[buf.readInt()];
+        LOG.info("Received message type: ", type);
         buf.resetReaderIndex();
         switch (type) {
             case GET:
