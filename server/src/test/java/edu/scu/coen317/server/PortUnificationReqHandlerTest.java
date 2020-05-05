@@ -10,6 +10,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import javax.sound.sampled.Port;
+
 import static org.junit.Assert.assertEquals;
 
 @RunWith(JUnit4.class)
@@ -22,8 +24,8 @@ public class PortUnificationReqHandlerTest {
     public static void setup() {
         bufPut = Unpooled.buffer();
         bufPut.writeInt(MessageType.PUT.ordinal());
-        bufPut.writeInt(4);
-        bufPut.writeCharSequence("test", Configuration.CHARSET);
+        bufPut.writeInt(3);
+        bufPut.writeCharSequence("key", Configuration.CHARSET);
         bufPut.writeInt(3);
         bufPut.writeCharSequence("val", Configuration.CHARSET);
 
@@ -48,16 +50,24 @@ public class PortUnificationReqHandlerTest {
     }
 
     @Test
-    public void testPutRequest() {
+    public void testPutAndGetRequest() {
         PortUnificationReqHandler handler = new PortUnificationReqHandler();
         EmbeddedChannel channel = new EmbeddedChannel(handler);
 
         ByteBuf in = bufPut.duplicate();
-        channel.writeInbound(in.retain());
+        channel.writeInbound(in);
 
         ByteBuf out = channel.readOutbound();
-        assertEquals(out.readInt(), MessageType.PUT_REPLY.ordinal());
+        assertEquals(MessageType.PUT_REPLY.ordinal(), out.readInt());
 
+        channel = new EmbeddedChannel(new PortUnificationReqHandler());
+        in = bufGet.duplicate();
+        channel.writeInbound(in);
+
+        out = channel.readOutbound();
+        assertEquals(MessageType.GET_REPLY.ordinal(), out.readInt());
+        assertEquals(3, out.readInt());
+        assertEquals("val", out.readCharSequence(3, Configuration.CHARSET));
         channel.close();
     }
 }

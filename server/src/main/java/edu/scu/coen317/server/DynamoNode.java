@@ -1,6 +1,8 @@
 package edu.scu.coen317.server;
 
 import edu.scu.coen317.server.conf.NodeConf;
+import edu.scu.coen317.server.persist.InMemoryKVStore;
+import edu.scu.coen317.server.persist.KVStore;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -11,6 +13,7 @@ import io.netty.handler.logging.LoggingHandler;
 
 public class DynamoNode {
     private NodeConf conf;
+    public static final KVStore KVSTORE = new InMemoryKVStore();
 
     public DynamoNode(NodeConf conf) {
         this.conf = conf;

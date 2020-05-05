@@ -14,6 +14,15 @@ public class ClientResponseEncoder extends MessageToByteEncoder<ClientResponse> 
         if (clientResponse.getType() == MessageType.GET_REPLY) {
             byteBuf.writeInt(clientResponse.getVal().length());
             byteBuf.writeCharSequence(clientResponse.getVal(), Configuration.CHARSET);
+            return;
+        }
+        if (clientResponse.getType() == MessageType.PUT_REPLY) {
+            if (clientResponse.getVal() == null) {
+                byteBuf.writeInt(0);
+            } else {
+                byteBuf.writeInt(clientResponse.getVal().length());
+                byteBuf.writeCharSequence(clientResponse.getVal(), Configuration.CHARSET);
+            }
         }
     }
 }

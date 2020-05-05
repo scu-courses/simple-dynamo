@@ -19,6 +19,13 @@ public class ClientResponseDecoder extends ReplayingDecoder<ClientResponse> {
             String val = byteBuf.readCharSequence(valLen, Configuration.CHARSET).toString();
             resp.setVal(val);
         }
+        if (type == MessageType.PUT_REPLY) {
+            int valLen = byteBuf.readInt();
+            if (valLen > 0) {
+                String val = byteBuf.readCharSequence(valLen, Configuration.CHARSET).toString();
+                resp.setVal(val);
+            }
+        }
         list.add(resp);
     }
 }

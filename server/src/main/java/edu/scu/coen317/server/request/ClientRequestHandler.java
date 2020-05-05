@@ -3,6 +3,7 @@ package edu.scu.coen317.server.request;
 import edu.scu.coen317.common.message.MessageType;
 import edu.scu.coen317.common.message.client.ClientRequest;
 import edu.scu.coen317.common.message.client.ClientResponse;
+import edu.scu.coen317.server.DynamoNode;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -28,12 +29,12 @@ public class ClientRequestHandler extends ChannelInboundHandlerAdapter {
     }
 
     private ClientResponse handleGetRequest(ClientRequest request) {
-        ClientResponse resp = new ClientResponse(MessageType.GET_REPLY, "tmp_val");
-        return resp;
+        String val = DynamoNode.KVSTORE.get(request.getKey());
+        return new ClientResponse(MessageType.GET_REPLY, val);
     }
 
     private ClientResponse handlePutRequest(ClientRequest request) {
-        ClientResponse resp = new ClientResponse(MessageType.PUT_REPLY, "tmp_val");
-        return resp;
+        String val = DynamoNode.KVSTORE.put(request.getKey(), request.getVal());
+        return new ClientResponse(MessageType.PUT_REPLY, val);
     }
 }
