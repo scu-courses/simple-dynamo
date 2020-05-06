@@ -15,18 +15,18 @@ import java.util.concurrent.ConcurrentSkipListSet;
 public class NodeGlobalView {
     private static final Logger LOG = LoggerFactory.getLogger(NodeGlobalView.class);
 
-    public void addNode(Node node) throws IOException {
+    public static void addNode(Node node) throws IOException {
         ConcurrentSkipListSet<Node> nodes = readAll();
         nodes.add(node);
         syncFile(nodes);
     }
 
-    public void removeNode() {
+    public static void removeNode() {
         // currently unsupported
         throw new UnsupportedOperationException();
     }
 
-    public ConcurrentSkipListSet<Node> readAll() throws IOException {
+    public static ConcurrentSkipListSet<Node> readAll() throws IOException {
         ConcurrentSkipListSet<Node> nodes = new ConcurrentSkipListSet<>();
         Path path = Paths.get(Configuration.NODE_LIST);
         if (!Files.exists(path)) {
@@ -45,12 +45,13 @@ public class NodeGlobalView {
         return nodes;
     }
 
-    private void syncFile(ConcurrentSkipListSet<Node> nodes) throws IOException {
+    private static void syncFile(ConcurrentSkipListSet<Node> nodes) throws IOException {
         File file = new File(Configuration.NODE_LIST);
         if (!file.exists()) {
+            file.getParentFile().mkdirs();
             file.createNewFile();
         }
-        
+
         FileWriter fw = new FileWriter(file);
         PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
         for (Node node : nodes) {

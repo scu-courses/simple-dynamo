@@ -43,8 +43,7 @@ public class DynamoNode {
 
     private void initMemListFromSeedFile() {
         try {
-            NodeGlobalView view = new NodeGlobalView();
-            ConcurrentSkipListSet<Node> allNodes = view.readAll();
+            ConcurrentSkipListSet<Node> allNodes = NodeGlobalView.readAll();
             MEMBERS.addAll(allNodes);
         } catch (IOException ioe) {
             LOG.error("Having trouble reading node list file, init as empty...");
