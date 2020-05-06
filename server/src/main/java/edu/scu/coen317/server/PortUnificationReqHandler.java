@@ -3,6 +3,9 @@ package edu.scu.coen317.server;
 import edu.scu.coen317.common.message.MessageType;
 import edu.scu.coen317.common.message.client.codec.ClientRequestDecoder;
 import edu.scu.coen317.common.message.client.codec.ClientResponseEncoder;
+import edu.scu.coen317.common.message.membership.codec.MemSyncRequestDecoder;
+import edu.scu.coen317.common.message.membership.codec.MemSyncResponseEncoder;
+import edu.scu.coen317.server.membership.MemSyncServerHandler;
 import edu.scu.coen317.server.request.ClientRequestHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -14,8 +17,15 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 public class PortUnificationReqHandler extends ByteToMessageDecoder {
-
     private static final Logger LOG = LoggerFactory.getLogger(PortUnificationReqHandler.class);
+
+    private DynamoNode dNode;
+
+    public PortUnificationReqHandler(DynamoNode node) {
+        this.dNode = node;
+    }
+
+    protected PortUnificationReqHandler() {}
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) throws Exception {
@@ -51,7 +61,9 @@ public class PortUnificationReqHandler extends ByteToMessageDecoder {
 
     private void processMemSync(ChannelHandlerContext ctx) {
         ChannelPipeline cp = ctx.pipeline();
-        LOG.info("Entered here");
+        cp.addLast(new MemSyncResponseEncoder());
+        cp.addLast(new MemSyncRequestDecoder());
+        cp.addLast(new MemSyncServerHandler(dNode));
         cp.remove(this);
     }
 }

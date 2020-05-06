@@ -10,8 +10,10 @@ import edu.scu.coen317.server.persist.InMemoryKVStore;
 import edu.scu.coen317.server.persist.KVStore;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -29,6 +31,7 @@ public class DynamoNode {
     private NodeConf conf;
     private ConcurrentSkipListSet<Node> members = new ConcurrentSkipListSet<>();
     private ScheduledExecutorService ses;
+    private PortUnificationReqHandler reqHandler;
 
     public NodeConf getConf() {
         return conf;
@@ -40,21 +43,24 @@ public class DynamoNode {
 
     public DynamoNode(NodeConf conf) {
         this.conf = conf;
-        ses = Executors.newScheduledThreadPool(1);
         init();
+
+        ses = Executors.newScheduledThreadPool(1);
+        reqHandler = new PortUnificationReqHandler(this);
     }
 
     private void init() {
         // update membership list
         if (conf.isSeed()) {
-            initMemListFromSeedFile();
+            refreshMemListFromSeedFile();
         }
         Node self = new Node(conf.getIp(), conf.getPort(), conf.getHash());
         members.add(self);
     }
 
-    private void initMemListFromSeedFile() {
+    public void refreshMemListFromSeedFile() {
         try {
+            LOG.info("Refreshing membership list from source of truth since node is seed node...");
             ConcurrentSkipListSet<Node> allNodes = NodeGlobalView.readAll();
             members.addAll(allNodes);
         } catch (IOException ioe) {
@@ -91,7 +97,12 @@ public class DynamoNode {
                     // log every connection
                     .handler(new LoggingHandler(LogLevel.INFO))
                     // handle incoming requests
-                    .childHandler(new DynamoNodeChannelInitializer());
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel sc) throws Exception {
+                            sc.pipeline().addLast(reqHandler);
+                        }
+                    });
 
             ChannelFuture cf = bootstrap.bind(conf.getPort()).sync();
             cf.channel().closeFuture().sync();

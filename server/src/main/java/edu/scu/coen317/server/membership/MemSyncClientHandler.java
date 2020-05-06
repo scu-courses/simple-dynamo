@@ -4,9 +4,9 @@ import edu.scu.coen317.common.message.membership.MemSyncRequest;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
-public class MemSyncRequestHandler extends ChannelInboundHandlerAdapter {
+public class MemSyncClientHandler extends ChannelInboundHandlerAdapter {
     private MemSyncRequest req;
-    public MemSyncRequestHandler(MemSyncRequest req) {
+    public MemSyncClientHandler(MemSyncRequest req) {
         this.req = req;
     }
 

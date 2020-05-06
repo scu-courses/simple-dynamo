@@ -35,11 +35,21 @@ public class MemSyncTask implements Runnable {
             return;
         }
 
+        // if node is seed node, refresh membership list from source of truth
+        if (dNode.getConf().isSeed()) {
+            dNode.refreshMemListFromSeedFile();
+        }
+
         // quick and dirty solution for getting the node reference in DynamoNode members list
         int random = new Random().nextInt(nodes.size());
         Node fakeTarget = nodes.get(random);
         Node target = dNode.getMembers().ceiling(fakeTarget);
         performMemSync(target, nodes);
+
+        LOG.info("Total number of nodes: {}", dNode.getMembers().size());
+        for (Node node : dNode.getMembers()) {
+            LOG.info(node.toString());
+        }
 
         LOG.info("Membership sync finished...");
     }
@@ -58,7 +68,7 @@ public class MemSyncTask implements Runnable {
                     ChannelPipeline cp = sc.pipeline();
                     cp.addLast(new MemSyncResponseDecoder());
                     cp.addLast(new MemSyncRequestEncoder());
-                    cp.addLast(new MemSyncRequestHandler(req));
+                    cp.addLast(new MemSyncClientHandler(req));
                 }
              });
 
