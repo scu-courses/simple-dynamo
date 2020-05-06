@@ -51,7 +51,7 @@ public class PortUnificationReqHandler extends ByteToMessageDecoder {
 
     private void processMemSync(ChannelHandlerContext ctx) {
         ChannelPipeline cp = ctx.pipeline();
-
+        LOG.info("Entered here");
         cp.remove(this);
     }
 }

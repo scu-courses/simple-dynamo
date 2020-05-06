@@ -1,7 +1,5 @@
 package edu.scu.coen317.common.model;
 
-import java.util.IllegalFormatException;
-
 public class Node implements Comparable<Node> {
     private String ip;
     private int port;
@@ -22,6 +20,13 @@ public class Node implements Comparable<Node> {
         this.ip = tokens[1];
         this.port = Integer.parseInt(tokens[2]);
         this.hash = tokens[0];
+        this.alive = true;
+    }
+
+    public Node(Node n) {
+        this.ip = n.ip;
+        this.port = n.port;
+        this.hash = n.hash;
         this.alive = true;
     }
 
@@ -68,7 +73,6 @@ public class Node implements Comparable<Node> {
         h = 31 * h + ip.hashCode();
         h = 31 * h + port;
         h = 31 * h + hash.hashCode();
-        h = 31 * h + (alive ? 1 : 0);
         return h;
     }
 
