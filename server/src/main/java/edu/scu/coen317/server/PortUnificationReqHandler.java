@@ -25,12 +25,16 @@ public class PortUnificationReqHandler extends ByteToMessageDecoder {
         }
 
         MessageType type = MessageType.values()[buf.readInt()];
-        LOG.info("Received message type: ", type);
         buf.resetReaderIndex();
         switch (type) {
             case GET:
             case PUT:
                 processClientRequest(ctx);
+                break;
+            case MEM_SYNC:
+                processMemSync(ctx);
+                break;
+            case REPLICATION:
                 break;
             default:
                 throw new RuntimeException("Unrecognized message type");
@@ -42,6 +46,12 @@ public class PortUnificationReqHandler extends ByteToMessageDecoder {
         cp.addLast(new ClientRequestDecoder());
         cp.addLast(new ClientResponseEncoder());
         cp.addLast(new ClientRequestHandler());
+        cp.remove(this);
+    }
+
+    private void processMemSync(ChannelHandlerContext ctx) {
+        ChannelPipeline cp = ctx.pipeline();
+
         cp.remove(this);
     }
 }

@@ -35,11 +35,7 @@ public class NodeGlobalView {
 
         List<String> lines = Files.readAllLines(path);
         for (String line : lines) {
-            String[] tokens = line.split(",");
-            String hash = tokens[0];
-            String ip = tokens[1];
-            int port = Integer.parseInt(tokens[2]);
-            Node node = new Node(ip, port, hash);
+            Node node = new Node(line);
             nodes.add(node);
         }
         return nodes;
