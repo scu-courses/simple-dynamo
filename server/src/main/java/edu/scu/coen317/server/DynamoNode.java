@@ -118,7 +118,14 @@ public class DynamoNode {
     }
 
     public static void main(String[] args) throws Exception {
-        NodeConf conf = new NodeConf("127.0.0.1", 8080, "", HashFunctions.randomMD5(),true);
+        String ip = args[0];
+        int port = Integer.parseInt(args[1]);
+        String datadir = args[2];
+        String hash = args[3];
+        boolean isSeed = Boolean.parseBoolean(args[4]);
+        NodeConf conf = new NodeConf(ip, port, datadir, hash, isSeed);
+
+//        NodeConf conf = new NodeConf("127.0.0.1", 8080, "", HashFunctions.randomMD5(),true);
         new DynamoNode(conf).run();
     }
 }

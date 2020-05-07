@@ -4,9 +4,13 @@ import edu.scu.coen317.common.message.membership.MemSyncRequest;
 import edu.scu.coen317.common.message.membership.codec.MemSyncRequestEncoder;
 import edu.scu.coen317.common.message.membership.codec.MemSyncResponseDecoder;
 import edu.scu.coen317.common.model.Node;
+import edu.scu.coen317.common.util.HashFunctions;
 import edu.scu.coen317.server.DynamoNode;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -15,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class MemSyncTask implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(MemSyncTask.class);
@@ -29,8 +33,7 @@ public class MemSyncTask implements Runnable {
     public void run() {
         LOG.info("Membership sync started...");
 
-        List<Node> nodes = getAllAliveNodes(false);
-        if (nodes.size() == 0) {
+        if (dNode.getMembers().size() == 1) {
             LOG.info("no other nodes to sync with, stop and wait for next cycle");
             return;
         }
@@ -40,11 +43,8 @@ public class MemSyncTask implements Runnable {
             dNode.refreshMemListFromSeedFile();
         }
 
-        // quick and dirty solution for getting the node reference in DynamoNode members list
-        int random = new Random().nextInt(nodes.size());
-        Node fakeTarget = nodes.get(random);
-        Node target = dNode.getMembers().ceiling(fakeTarget);
-        performMemSync(target, nodes);
+        Node target = getRandomNode();
+        performMemSync(target, cloneMemberList());
 
         LOG.info("Total number of nodes: {}", dNode.getMembers().size());
         for (Node node : dNode.getMembers()) {
@@ -52,6 +52,24 @@ public class MemSyncTask implements Runnable {
         }
 
         LOG.info("Membership sync finished...");
+    }
+
+    private List<Node> cloneMemberList() {
+        List<Node> cpy = new ArrayList<>();
+        for (Node node : dNode.getMembers()) {
+            cpy.add(node.clone());
+        }
+        return cpy;
+    }
+
+    private Node getRandomNode() {
+        // quick and dirty way to generate random node for getting real node
+        Node random = new Node("localhost", 8080, HashFunctions.randomMD5());
+        Node target = dNode.getMembers().floor(random);
+        if (target == null) {
+            target = dNode.getMembers().first();
+        }
+        return target;
     }
 
     private void performMemSync(Node target, List<Node> nodes) {
@@ -93,7 +111,7 @@ public class MemSyncTask implements Runnable {
     private List<Node> getAllAliveNodes(boolean exceptSelf) {
         List<Node> nodes = new ArrayList<>();
         for (Node n : dNode.getMembers()) {
-            if ( !n.isAlive() || (exceptSelf && isSelf(n)) ) {
+            if ( (exceptSelf && isSelf(n)) ) {
                 continue;
             }
             Node node = new Node(n);

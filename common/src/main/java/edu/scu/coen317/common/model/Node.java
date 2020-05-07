@@ -95,4 +95,8 @@ public class Node implements Comparable<Node> {
         sb.append(port);
         return sb.toString();
     }
+
+    public Node clone() {
+        return new Node(ip, port, hash);
+    }
 }
