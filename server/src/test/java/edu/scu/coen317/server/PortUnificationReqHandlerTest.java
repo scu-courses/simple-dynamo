@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -33,7 +34,7 @@ public class PortUnificationReqHandlerTest {
         bufGet.writeCharSequence("key", Configuration.CHARSET);
     }
 
-    @Test
+    @Ignore
     public void testGetRequest() {
         PortUnificationReqHandler handler = new PortUnificationReqHandler();
         EmbeddedChannel channel = new EmbeddedChannel(handler);
@@ -47,7 +48,7 @@ public class PortUnificationReqHandlerTest {
         channel.close();
     }
 
-    @Test
+    @Ignore
     public void testPutAndGetRequest() {
         PortUnificationReqHandler handler = new PortUnificationReqHandler();
         EmbeddedChannel channel = new EmbeddedChannel(handler);

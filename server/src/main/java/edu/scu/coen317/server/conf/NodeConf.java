@@ -1,11 +1,6 @@
 package edu.scu.coen317.server.conf;
 
 public class NodeConf {
-    // quorum
-    public static final int N = 3;
-    public static final int R = 2;
-    public static final int W = 2;
-
     // server initialization params
     private String ip;
     private int port;

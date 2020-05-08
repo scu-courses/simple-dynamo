@@ -5,7 +5,10 @@ import edu.scu.coen317.common.message.client.codec.ClientRequestDecoder;
 import edu.scu.coen317.common.message.client.codec.ClientResponseEncoder;
 import edu.scu.coen317.common.message.membership.codec.MemSyncRequestDecoder;
 import edu.scu.coen317.common.message.membership.codec.MemSyncResponseEncoder;
+import edu.scu.coen317.common.message.replication.codec.ReplicationRequestDecoder;
+import edu.scu.coen317.common.message.replication.codec.ReplicationResponseEncoder;
 import edu.scu.coen317.server.membership.MemSyncServerHandler;
+import edu.scu.coen317.server.replication.ReplicationServerHandler;
 import edu.scu.coen317.server.request.ClientRequestHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -45,6 +48,7 @@ public class PortUnificationReqHandler extends ByteToMessageDecoder {
                 processMemSync(ctx);
                 break;
             case REPLICATION:
+                processReplication(ctx);
                 break;
             default:
                 throw new RuntimeException("Unrecognized message type");
@@ -55,15 +59,23 @@ public class PortUnificationReqHandler extends ByteToMessageDecoder {
         ChannelPipeline cp = ctx.pipeline();
         cp.addLast(new ClientRequestDecoder());
         cp.addLast(new ClientResponseEncoder());
-        cp.addLast(new ClientRequestHandler());
+        cp.addLast(new ClientRequestHandler(dNode));
         cp.remove(this);
     }
 
     private void processMemSync(ChannelHandlerContext ctx) {
         ChannelPipeline cp = ctx.pipeline();
-        cp.addLast(new MemSyncResponseEncoder());
         cp.addLast(new MemSyncRequestDecoder());
+        cp.addLast(new MemSyncResponseEncoder());
         cp.addLast(new MemSyncServerHandler(dNode));
+        cp.remove(this);
+    }
+
+    private void processReplication(ChannelHandlerContext ctx) {
+        ChannelPipeline cp = ctx.pipeline();
+        cp.addLast(new ReplicationRequestDecoder());
+        cp.addLast(new ReplicationResponseEncoder());
+        cp.addLast(new ReplicationServerHandler(dNode));
         cp.remove(this);
     }
 }

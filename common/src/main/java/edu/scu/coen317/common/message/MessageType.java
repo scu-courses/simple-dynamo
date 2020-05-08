@@ -7,6 +7,10 @@ public enum MessageType {
     GET,
     GET_REPLY,
 
+    // Server request
+    QUORUM_GET,
+    QUORUM_GET_REPLY,
+
     // Membership notification
     MEM_SYNC,
     MEM_REPLY,

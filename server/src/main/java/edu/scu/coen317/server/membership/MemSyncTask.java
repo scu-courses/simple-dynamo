@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 public class MemSyncTask implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(MemSyncTask.class);
@@ -31,7 +30,7 @@ public class MemSyncTask implements Runnable {
 
     @Override
     public void run() {
-        LOG.info("Membership sync started...");
+        LOG.debug("Membership sync started...");
 
         if (dNode.getMembers().size() == 1) {
             LOG.info("no other nodes to sync with, stop and wait for next cycle");
@@ -46,12 +45,12 @@ public class MemSyncTask implements Runnable {
         Node target = getRandomNode();
         performMemSync(target, cloneMemberList());
 
-        LOG.info("Total number of nodes: {}", dNode.getMembers().size());
+        LOG.debug("Total number of nodes: {}", dNode.getMembers().size());
         for (Node node : dNode.getMembers()) {
-            LOG.info(node.toString());
+            LOG.debug(node.toString());
         }
 
-        LOG.info("Membership sync finished...");
+        LOG.debug("Membership sync finished...");
     }
 
     private List<Node> cloneMemberList() {

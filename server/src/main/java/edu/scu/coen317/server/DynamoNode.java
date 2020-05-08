@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.*;
 
 public class DynamoNode {
@@ -31,7 +33,6 @@ public class DynamoNode {
     private NodeConf conf;
     private ConcurrentSkipListSet<Node> members = new ConcurrentSkipListSet<>();
     private ScheduledExecutorService ses;
-    private PortUnificationReqHandler reqHandler;
 
     public NodeConf getConf() {
         return conf;
@@ -46,7 +47,6 @@ public class DynamoNode {
         init();
 
         ses = Executors.newScheduledThreadPool(1);
-        reqHandler = new PortUnificationReqHandler(this);
     }
 
     private void init() {
@@ -97,12 +97,7 @@ public class DynamoNode {
                     // log every connection
                     .handler(new LoggingHandler(LogLevel.INFO))
                     // handle incoming requests
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(SocketChannel sc) throws Exception {
-                            sc.pipeline().addLast(reqHandler);
-                        }
-                    });
+                    .childHandler(new DynamoNodeChannelInitializer(this));
 
             ChannelFuture cf = bootstrap.bind(conf.getPort()).sync();
             cf.channel().closeFuture().sync();
@@ -117,6 +112,39 @@ public class DynamoNode {
         }
     }
 
+    // return replication nodes except for itself
+    public Set<Node> getNodes(String key) {
+        Set<Node> nodes = new HashSet<>();
+        Node tmp = new Node("", 0, HashFunctions.md5Hash(key));
+        Node start = members.ceiling(tmp);
+        Set<Node> tailSet = members.tailSet(start, true);
+
+        // get N replicas from members list
+        if (tailSet.size() >= Configuration.N) {
+            int cnt = 0;
+            for (Node n : tailSet) {
+                if (cnt++ == Configuration.N) {
+                    break;
+                }
+                nodes.add(n.clone());
+            }
+        } else {
+            nodes.addAll(tailSet);
+            int size = Configuration.N - nodes.size();
+            for (Node n : members) {
+                if (size-- == 0) {
+                    break;
+                }
+                nodes.add(n.clone());
+            }
+        }
+
+        // remove node itself from list
+        nodes.removeIf(n -> n.getHash().equals(conf.getHash()));
+
+        return nodes;
+    }
+
     public static void main(String[] args) throws Exception {
         String ip = args[0];
         int port = Integer.parseInt(args[1]);
@@ -125,7 +153,7 @@ public class DynamoNode {
         boolean isSeed = Boolean.parseBoolean(args[4]);
         NodeConf conf = new NodeConf(ip, port, datadir, hash, isSeed);
 
-//        NodeConf conf = new NodeConf("127.0.0.1", 8080, "", HashFunctions.randomMD5(),true);
-        new DynamoNode(conf).run();
+        DynamoNode node = new DynamoNode(conf);
+        node.run();
     }
 }
