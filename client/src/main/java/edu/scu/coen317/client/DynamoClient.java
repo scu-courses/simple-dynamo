@@ -4,9 +4,6 @@ import edu.scu.coen317.common.message.MessageType;
 import edu.scu.coen317.common.message.client.ClientRequest;
 import edu.scu.coen317.common.message.client.codec.ClientRequestEncoder;
 import edu.scu.coen317.common.message.client.codec.ClientResponseDecoder;
-import edu.scu.coen317.common.message.membership.MemSyncRequest;
-import edu.scu.coen317.common.message.membership.codec.MemSyncRequestEncoder;
-import edu.scu.coen317.common.message.membership.codec.MemSyncResponseDecoder;
 import edu.scu.coen317.common.model.Node;
 import edu.scu.coen317.common.util.NodeGlobalView;
 import edu.scu.coen317.common.util.NodeLocator;
@@ -20,13 +17,18 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 public class DynamoClient {
 
     public static void main(String[] args) throws Exception {
-        ConcurrentSkipListSet<Node> nodes = NodeGlobalView.readAll();
+        ClientRequest get = new ClientRequest(MessageType.GET, "key");
+        ClientRequest put = new ClientRequest(MessageType.PUT, "key", "val2");
 
+        execute(put);
+        execute(get);
+    }
+
+    private static void execute(ClientRequest req) throws Exception {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             Bootstrap b = new Bootstrap();
@@ -35,7 +37,6 @@ public class DynamoClient {
              .handler(new ChannelInitializer<SocketChannel>() {
                  @Override
                  protected void initChannel(SocketChannel sc) throws Exception {
-                     ClientRequest req = new ClientRequest(MessageType.PUT, "key", "val");
                      ChannelPipeline cp = sc.pipeline();
                      cp.addLast(new ClientResponseDecoder());
                      cp.addLast(new ClientRequestEncoder());
@@ -43,9 +44,9 @@ public class DynamoClient {
                  }
              });
 
-            Set<Node> targets = NodeLocator.getNodes(nodes, "key", "");
+            Set<Node> targets = NodeLocator.getNodes(NodeGlobalView.readAll(), "key", "");
             for (Node node : targets) {
-                ChannelFuture future = b.connect(node.getIp(), node.getPort()).sync();
+                ChannelFuture future = b.connect(node.getIp(), node.getPort()).await();
                 future.channel().closeFuture().sync();
                 if (future.isSuccess()) {
                     break;

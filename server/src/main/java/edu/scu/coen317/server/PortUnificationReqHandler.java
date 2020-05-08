@@ -7,9 +7,12 @@ import edu.scu.coen317.common.message.membership.codec.MemSyncRequestDecoder;
 import edu.scu.coen317.common.message.membership.codec.MemSyncResponseEncoder;
 import edu.scu.coen317.common.message.replication.codec.ReplicationRequestDecoder;
 import edu.scu.coen317.common.message.replication.codec.ReplicationResponseEncoder;
+import edu.scu.coen317.common.message.server.codec.QuorumGetRequestDecoder;
+import edu.scu.coen317.common.message.server.codec.QuorumGetResponseEncoder;
 import edu.scu.coen317.server.membership.MemSyncServerHandler;
 import edu.scu.coen317.server.replication.ReplicationServerHandler;
 import edu.scu.coen317.server.request.ClientRequestHandler;
+import edu.scu.coen317.server.request.QuorumGetRequestServerHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
@@ -50,6 +53,8 @@ public class PortUnificationReqHandler extends ByteToMessageDecoder {
             case REPLICATION:
                 processReplication(ctx);
                 break;
+            case QUORUM_GET:
+                processQuorumGet(ctx);
             default:
                 throw new RuntimeException("Unrecognized message type");
         }
@@ -76,6 +81,14 @@ public class PortUnificationReqHandler extends ByteToMessageDecoder {
         cp.addLast(new ReplicationRequestDecoder());
         cp.addLast(new ReplicationResponseEncoder());
         cp.addLast(new ReplicationServerHandler(dNode));
+        cp.remove(this);
+    }
+
+    private void processQuorumGet(ChannelHandlerContext ctx) {
+        ChannelPipeline cp = ctx.pipeline();
+        cp.addLast(new QuorumGetRequestDecoder());
+        cp.addLast(new QuorumGetResponseEncoder());
+        cp.addLast(new QuorumGetRequestServerHandler(dNode));
         cp.remove(this);
     }
 }

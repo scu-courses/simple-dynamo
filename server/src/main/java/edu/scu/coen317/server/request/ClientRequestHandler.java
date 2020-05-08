@@ -7,9 +7,9 @@ import edu.scu.coen317.common.message.client.ClientResponse;
 import edu.scu.coen317.common.message.replication.ReplicationRequest;
 import edu.scu.coen317.common.message.replication.codec.ReplicationRequestDecoder;
 import edu.scu.coen317.common.message.replication.codec.ReplicationRequestEncoder;
-import edu.scu.coen317.common.message.server.ServerGetRequest;
-import edu.scu.coen317.common.message.server.codec.ServerGetRequestEncoder;
-import edu.scu.coen317.common.message.server.codec.ServerGetResponseDecoder;
+import edu.scu.coen317.common.message.server.QuorumGetRequest;
+import edu.scu.coen317.common.message.server.codec.QuorumGetRequestEncoder;
+import edu.scu.coen317.common.message.server.codec.QuorumGetResponseDecoder;
 import edu.scu.coen317.common.model.Node;
 import edu.scu.coen317.common.util.NodeLocator;
 import edu.scu.coen317.server.DynamoNode;
@@ -76,9 +76,9 @@ public class ClientRequestHandler extends ChannelInboundHandlerAdapter {
                  @Override
                  protected void initChannel(SocketChannel sc) throws Exception {
                      ChannelPipeline cp = sc.pipeline();
-                     cp.addLast(new ServerGetResponseDecoder());
-                     cp.addLast(new ServerGetRequestEncoder());
-                     cp.addLast(new ServerGetRequestHandler(new ServerGetRequest(key), quorum));
+                     cp.addLast(new QuorumGetResponseDecoder());
+                     cp.addLast(new QuorumGetRequestEncoder());
+                     cp.addLast(new QuorumGetRequestClientHandler(new QuorumGetRequest(key), quorum));
                  }
              });
 

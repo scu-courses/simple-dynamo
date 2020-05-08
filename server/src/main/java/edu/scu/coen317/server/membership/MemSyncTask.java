@@ -92,7 +92,7 @@ public class MemSyncTask implements Runnable {
             ChannelFuture future = b.connect(target.getIp(), target.getPort()).await();
             future.channel().closeFuture().sync();
             if (!future.isSuccess()) {
-                LOG.info("Target node {}:{}:{} not responding, setting is as failed...",
+                LOG.info("{}:{}:{} not responding to MEM_SYNC, setting as failed...",
                         target.getIp(), target.getPort(), target.getHash());
                 target.setAlive(false);
             } else {

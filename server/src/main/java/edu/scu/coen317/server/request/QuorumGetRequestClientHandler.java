@@ -1,18 +1,18 @@
 package edu.scu.coen317.server.request;
 
-import edu.scu.coen317.common.message.server.ServerGetRequest;
-import edu.scu.coen317.common.message.server.ServerGetResponse;
+import edu.scu.coen317.common.message.server.QuorumGetRequest;
+import edu.scu.coen317.common.message.server.QuorumGetResponse;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ServerGetRequestHandler extends ChannelInboundHandlerAdapter {
+public class QuorumGetRequestClientHandler extends ChannelInboundHandlerAdapter {
 
-    private ServerGetRequest req;
+    private QuorumGetRequest req;
     private ConcurrentHashMap<String, Integer> quorum;
 
-    public ServerGetRequestHandler(ServerGetRequest req, ConcurrentHashMap<String, Integer> quorum) {
+    public QuorumGetRequestClientHandler(QuorumGetRequest req, ConcurrentHashMap<String, Integer> quorum) {
         this.req = req;
         this.quorum = quorum;
     }
@@ -24,7 +24,7 @@ public class ServerGetRequestHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        ServerGetResponse resp = (ServerGetResponse) msg;
+        QuorumGetResponse resp = (QuorumGetResponse) msg;
         quorum.put(resp.getVal(), quorum.getOrDefault(resp.getVal(), 0) + 1);
     }
 }

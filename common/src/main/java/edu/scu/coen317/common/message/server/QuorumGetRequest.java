@@ -2,12 +2,12 @@ package edu.scu.coen317.common.message.server;
 
 import edu.scu.coen317.common.message.MessageType;
 
-public class ServerGetRequest {
+public class QuorumGetRequest {
     public static final MessageType TYPE = MessageType.QUORUM_GET;
 
     private String key;
 
-    public ServerGetRequest(String key) {
+    public QuorumGetRequest(String key) {
         this.key = key;
     }
 

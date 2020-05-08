@@ -22,5 +22,6 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         ClientResponse resp = (ClientResponse) msg;
+        System.out.println(resp.getType() + " " + resp.getVal());
     }
 }
