@@ -18,17 +18,40 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DynamoClient {
+	private static final Logger LOG = LoggerFactory.getLogger(DynamoClient.class);
 
     public static void main(String[] args) throws Exception {
-        ClientRequest get = new ClientRequest(MessageType.GET, "key");
-        ClientRequest put = new ClientRequest(MessageType.PUT, "key", "val2");
-
-        execute(put);
-        execute(get);
+        put("key_1", "val_1");
+        get("key_1");
+    }
+    
+    public static void put(String key, String val) {
+    	ClientRequest req = new ClientRequest(MessageType.PUT, key, val);
+    	try {
+    		LOG.info("Sending PUT request...Key: {}, Value: {}", key, val);
+			boolean res = execute(req);
+			LOG.info("PUT request {}", res ? "succeeded" : "failed");
+		} catch (Exception e) {
+			LOG.warn("PUT request got interrupted...");
+		}
+    }
+    
+    public static void get(String key) {
+    	ClientRequest req = new ClientRequest(MessageType.GET, key);
+    	try {
+    		LOG.info("Sending GET request...Key: {}", key);
+			boolean res = execute(req);
+			LOG.info("GET request {}", res ? "succeeded" : "failed");
+		} catch (Exception e) {
+			LOG.warn("GET request got interrupted...");
+		}
     }
 
-    private static void execute(ClientRequest req) throws Exception {
+    private static boolean execute(ClientRequest req) throws Exception {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             Bootstrap b = new Bootstrap();
@@ -44,16 +67,17 @@ public class DynamoClient {
                  }
              });
 
-            Set<Node> targets = NodeLocator.getNodes(NodeGlobalView.readAll(), "key", "");
+            Set<Node> targets = NodeLocator.getNodes(NodeGlobalView.readAll(), req.getKey(), "");
             for (Node node : targets) {
                 ChannelFuture future = b.connect(node.getIp(), node.getPort()).await();
                 future.channel().closeFuture().sync();
                 if (future.isSuccess()) {
-                    break;
+                    return true;
                 }
             }
         } finally {
             workerGroup.shutdownGracefully();
         }
+        return false;
     }
 }
