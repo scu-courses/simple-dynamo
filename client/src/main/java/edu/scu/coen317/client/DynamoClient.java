@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DynamoClient {
-	private static final Logger LOG = LoggerFactory.getLogger(DynamoClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DynamoClient.class);
 
     public static void main(String[] args) throws Exception {
         put("key_1", "val_1");
@@ -31,27 +31,27 @@ public class DynamoClient {
     }
     
     public static void put(String key, String val) {
-    	ClientRequest req = new ClientRequest(MessageType.PUT, key, val);
-    	try {
-    		LOG.info("Sending PUT request...Key: {}, Value: {}", key, val);
-    		ClientResponse resp = execute(req);
-			LOG.info("PUT request {}", resp != null ? "succeeded" : "failed");
-		} catch (Exception e) {
-			LOG.warn("PUT request got interrupted...");
-		}
+        ClientRequest req = new ClientRequest(MessageType.PUT, key, val);
+        try {
+            LOG.info("Sending PUT request...Key: {}, Value: {}", key, val);
+            ClientResponse resp = execute(req);
+            LOG.info("PUT request {}", resp != null ? "succeeded" : "failed");
+        } catch (Exception e) {
+            LOG.warn("PUT request got interrupted...");
+        }
     }
     
     public static String get(String key) {
-    	ClientRequest req = new ClientRequest(MessageType.GET, key);
-    	try {
-    		LOG.info("Sending GET request...Key: {}", key);
-    		ClientResponse resp = execute(req);
-			LOG.info("GET request {}", resp != null ? "succeeded" : "failed");
-			return resp.getVal();
-		} catch (Exception e) {
-			LOG.warn("GET request got interrupted...");
-		}
-    	return "";
+        ClientRequest req = new ClientRequest(MessageType.GET, key);
+        try {
+            LOG.info("Sending GET request...Key: {}", key);
+            ClientResponse resp = execute(req);
+            LOG.info("GET request {}", resp != null ? "succeeded" : "failed");
+            return resp.getVal();
+        } catch (Exception e) {
+            LOG.warn("GET request got interrupted...");
+        }
+        return "";
     }
 
     private static ClientResponse execute(ClientRequest req) throws Exception {
@@ -60,16 +60,16 @@ public class DynamoClient {
             Bootstrap b = new Bootstrap();
             RequestHandler handler = new RequestHandler(req);
             b.group(workerGroup)
-             .channel(NioSocketChannel.class)
-             .handler(new ChannelInitializer<SocketChannel>() {
-                 @Override
-                 protected void initChannel(SocketChannel sc) throws Exception {
-                     ChannelPipeline cp = sc.pipeline();
-                     cp.addLast(new ClientResponseDecoder());
-                     cp.addLast(new ClientRequestEncoder());
-                     cp.addLast(handler);
-                 }
-             });
+            .channel(NioSocketChannel.class)
+            .handler(new ChannelInitializer<SocketChannel>() {
+               @Override
+               protected void initChannel(SocketChannel sc) throws Exception {
+                   ChannelPipeline cp = sc.pipeline();
+                   cp.addLast(new ClientResponseDecoder());
+                   cp.addLast(new ClientRequestEncoder());
+                   cp.addLast(handler);
+               }
+           });
 
             Set<Node> targets = NodeLocator.getNodes(NodeGlobalView.readAll(), req.getKey(), "");
             for (Node node : targets) {
