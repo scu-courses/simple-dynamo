@@ -20,7 +20,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     public ClientResponse getResponse() {
         return response;
-	}
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -31,14 +31,14 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         response = (ClientResponse) msg;
         switch (response.getType()) {
-        	case PUT_REPLY:
-        		LOG.info("Received PUT_REPLY");
-        		break;
-        	case GET_REPLY:
-        		LOG.info("Received GET_REPLY, Value: {}", response.getVal());
-        		break;
-        	default:
-        		break;
+            case PUT_REPLY:
+                LOG.info("Received PUT_REPLY");
+                break;
+            case GET_REPLY:
+                LOG.info("Received GET_REPLY, Value: {}", response.getVal());
+                break;
+            default:
+                break;
         }
     }
 }
