@@ -19,10 +19,10 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     }
 
     public ClientResponse getResponse() {
-		return response;
+        return response;
 	}
 
-	@Override
+    @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         ctx.writeAndFlush(req);
     }
