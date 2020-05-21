@@ -19,14 +19,14 @@ public class NodeGlobalViewTest {
 
     @Test
     public void testAddNode() throws IOException {
-        Node node = new Node("localhost", 8080, HashFunctions.randomMD5());
+        Node node = new Node("localhost", 8080, HashFunctions.randomMD5(), 0);
         NodeGlobalView.addNode(node);
 
         ConcurrentSkipListSet<Node> nodes = NodeGlobalView.readAll();
         assertEquals(1, nodes.size());
         assertEquals(node, nodes.first());
 
-        Node node2 = new Node("localhst", 8081, HashFunctions.randomMD5());
+        Node node2 = new Node("localhst", 8081, HashFunctions.randomMD5(), 0);
         NodeGlobalView.addNode(node2);
 
         nodes = NodeGlobalView.readAll();
