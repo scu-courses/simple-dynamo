@@ -71,16 +71,16 @@ public class ClientRequestHandler extends ChannelInboundHandlerAdapter {
         try {
             Bootstrap b = new Bootstrap();
             b.group(workerGroup)
-             .channel(NioSocketChannel.class)
-             .handler(new ChannelInitializer<SocketChannel>() {
-                 @Override
-                 protected void initChannel(SocketChannel sc) throws Exception {
-                     ChannelPipeline cp = sc.pipeline();
-                     cp.addLast(new QuorumGetResponseDecoder());
-                     cp.addLast(new QuorumGetRequestEncoder());
-                     cp.addLast(new QuorumGetRequestClientHandler(new QuorumGetRequest(key), quorum));
-                 }
-             });
+                .channel(NioSocketChannel.class)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel sc) throws Exception {
+                        ChannelPipeline cp = sc.pipeline();
+                        cp.addLast(new QuorumGetResponseDecoder());
+                        cp.addLast(new QuorumGetRequestEncoder());
+                        cp.addLast(new QuorumGetRequestClientHandler(new QuorumGetRequest(key), quorum));
+                    }
+                });
 
             Set<Node> nodes = NodeLocator.getNodes(dNode.getMembers(), key, dNode.getConf().getHash());
             for (Node node : nodes) {
@@ -90,6 +90,8 @@ public class ClientRequestHandler extends ChannelInboundHandlerAdapter {
                     LOG.debug("{}:{}:{} not responding to QUORUM_GET, setting it as failed...",
                             node.getIp(), node.getPort(), node.getHash());
                     dNode.getMembers().floor(node).setAlive(false);
+                    boolean removed = dNode.getMembers().remove(node);
+                    LOG.info("Target successfully removed from memberlist: {}", removed);
                 } else {
                     LOG.debug("QUORUM_GET with {}:{}:{} succeeded...",
                             node.getIp(), node.getPort(), node.getHash());
@@ -130,17 +132,17 @@ public class ClientRequestHandler extends ChannelInboundHandlerAdapter {
         try {
             Bootstrap b = new Bootstrap();
             b.group(workerGroup)
-             .channel(NioSocketChannel.class)
-             .handler(new ChannelInitializer<SocketChannel>() {
-                 @Override
-                 protected void initChannel(SocketChannel sc) throws Exception {
-                     ReplicationRequest req = new ReplicationRequest(key, val);
-                     ChannelPipeline cp = sc.pipeline();
-                     cp.addLast(new ReplicationRequestDecoder());
-                     cp.addLast(new ReplicationRequestEncoder());
-                     cp.addLast(new ReplicationClientHandler(req));
-                 }
-             });
+                    .channel(NioSocketChannel.class)
+                    .handler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel sc) throws Exception {
+                            ReplicationRequest req = new ReplicationRequest(key, val);
+                            ChannelPipeline cp = sc.pipeline();
+                            cp.addLast(new ReplicationRequestDecoder());
+                            cp.addLast(new ReplicationRequestEncoder());
+                            cp.addLast(new ReplicationClientHandler(req));
+                        }
+                    });
 
             Set<Node> nodes = NodeLocator.getNodes(dNode.getMembers(), key, dNode.getConf().getHash());
             for (Node node : nodes) {
@@ -150,6 +152,8 @@ public class ClientRequestHandler extends ChannelInboundHandlerAdapter {
                     LOG.info("{}:{}:{} not responding to REPLICATION, setting it as failed...",
                             node.getIp(), node.getPort(), node.getHash());
                     dNode.getMembers().floor(node).setAlive(false);
+                    boolean removed = dNode.getMembers().remove(node);
+                    LOG.info("Target successfully removed from memberlist: {}", removed);
                 } else {
                     LOG.info("REPLICATION with {}:{}:{} succeeded...",
                             node.getIp(), node.getPort(), node.getHash());
