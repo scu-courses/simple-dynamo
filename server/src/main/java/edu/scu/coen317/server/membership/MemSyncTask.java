@@ -17,6 +17,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,7 +64,9 @@ public class MemSyncTask implements Runnable {
 
     private Node getRandomNode() {
         // quick and dirty way to generate random node for getting real node
-        Node random = new Node("localhost", 8080, HashFunctions.randomMD5());
+        String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+
+        Node random = new Node("localhost", 8080, HashFunctions.randomMD5(), Integer.valueOf(pid));
         Node target = dNode.getMembers().floor(random);
         if (target == null) {
             target = dNode.getMembers().first();
@@ -77,17 +80,17 @@ public class MemSyncTask implements Runnable {
         try {
             Bootstrap b = new Bootstrap();
             b.group(workerGroup)
-             .channel(NioSocketChannel.class)
-             .handler(new ChannelInitializer<SocketChannel>() {
-                @Override
-                protected void initChannel(SocketChannel sc) throws Exception {
-                    MemSyncRequest req = new MemSyncRequest(nodes);
-                    ChannelPipeline cp = sc.pipeline();
-                    cp.addLast(new MemSyncResponseDecoder());
-                    cp.addLast(new MemSyncRequestEncoder());
-                    cp.addLast(new MemSyncClientHandler(req));
-                }
-             });
+                    .channel(NioSocketChannel.class)
+                    .handler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel sc) throws Exception {
+                            MemSyncRequest req = new MemSyncRequest(nodes);
+                            ChannelPipeline cp = sc.pipeline();
+                            cp.addLast(new MemSyncResponseDecoder());
+                            cp.addLast(new MemSyncRequestEncoder());
+                            cp.addLast(new MemSyncClientHandler(req));
+                        }
+                    });
 
             ChannelFuture future = b.connect(target.getIp(), target.getPort()).await();
             future.channel().closeFuture().sync();
@@ -95,6 +98,8 @@ public class MemSyncTask implements Runnable {
                 LOG.info("{}:{}:{} not responding to MEM_SYNC, setting as failed...",
                         target.getIp(), target.getPort(), target.getHash());
                 target.setAlive(false);
+                boolean removed = dNode.getMembers().remove(target);
+                LOG.info("Target successfully removed from memberlist: {}", removed);
             } else {
                 LOG.info("MEM_SYNC with {}:{}:{} succeeded...",
                         target.getIp(), target.getPort(), target.getHash());

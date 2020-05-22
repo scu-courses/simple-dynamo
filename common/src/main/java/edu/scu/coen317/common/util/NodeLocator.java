@@ -3,6 +3,7 @@ package edu.scu.coen317.common.util;
 import edu.scu.coen317.common.Configuration;
 import edu.scu.coen317.common.model.Node;
 
+import java.lang.management.ManagementFactory;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -12,7 +13,9 @@ public class NodeLocator {
     // return replication nodes except for itself
     public static Set<Node> getNodes(ConcurrentSkipListSet<Node> members, String key, String selfHash) {
         Set<Node> nodes = new HashSet<>();
-        Node tmp = new Node("", 0, HashFunctions.md5Hash(key));
+        String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+
+        Node tmp = new Node("", 0, HashFunctions.md5Hash(key), Integer.valueOf(pid));
         Node start = members.ceiling(tmp);
         Set<Node> tailSet = members.tailSet(start, true);
 

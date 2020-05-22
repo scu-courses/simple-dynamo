@@ -1,6 +1,7 @@
 package edu.scu.coen317.server;
 
 import edu.scu.coen317.common.Configuration;
+import edu.scu.coen317.common.error.HostAndPortOccupiedError;
 import edu.scu.coen317.common.model.Node;
 import edu.scu.coen317.common.util.HashFunctions;
 import edu.scu.coen317.common.util.NodeGlobalView;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -42,25 +44,44 @@ public class DynamoNode {
         return members;
     }
 
-    public DynamoNode(NodeConf conf) {
+    public DynamoNode(NodeConf conf) throws HostAndPortOccupiedError, IOException {
         this.conf = conf;
         init();
-
         ses = Executors.newScheduledThreadPool(1);
     }
 
-    private void init() {
+    private void init() throws HostAndPortOccupiedError, IOException {
+        // Check if host and port is already occupied
+        if (NodeGlobalView.isHostAndPortOccupied(conf.getIp(), conf.getPort())) {
+            LOG.debug("this host and port has been occupied");
+            throw new HostAndPortOccupiedError();
+        }
+
         // update membership list
         if (conf.isSeed()) {
             refreshMemListFromSeedFile();
         }
-        Node self = new Node(conf.getIp(), conf.getPort(), conf.getHash());
+
+        String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+        Node self = new Node(conf.getIp(), conf.getPort(), conf.getHash(), Integer.parseInt(pid));
+
+        LOG.info(String.format(
+                "DynamoNode: %s running on host: %s, port: %s, pid: %s",
+                self.getHash(),
+                self.getIp(),
+                self.getPort(),
+                pid
+                )
+        );
+
+        NodeGlobalView.addNode(self);
         members.add(self);
     }
 
     public void refreshMemListFromSeedFile() {
         try {
             LOG.info("Refreshing membership list from source of truth since node is seed node...");
+            this.members.clear();
             ConcurrentSkipListSet<Node> allNodes = NodeGlobalView.readAll();
             members.addAll(allNodes);
         } catch (IOException ioe) {
@@ -109,13 +130,16 @@ public class DynamoNode {
             // shutdown server loops
             execGroup.shutdownGracefully();
             connGroup.shutdownGracefully();
+            NodeGlobalView.removeNode(null);
         }
     }
 
     // return replication nodes except for itself
     public Set<Node> getNodes(String key) {
         Set<Node> nodes = new HashSet<>();
-        Node tmp = new Node("", 0, HashFunctions.md5Hash(key));
+        int pid = Integer.valueOf(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+
+        Node tmp = new Node("", 0, HashFunctions.md5Hash(key), pid);
         Node start = members.ceiling(tmp);
         Set<Node> tailSet = members.tailSet(start, true);
 
@@ -141,7 +165,6 @@ public class DynamoNode {
 
         // remove node itself from list
         nodes.removeIf(n -> n.getHash().equals(conf.getHash()));
-
         return nodes;
     }
 

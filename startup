@@ -1,0 +1,55 @@
+#!/usr/bin/python
+import subprocess
+import os
+import argparse
+import random
+import hashlib
+
+seed = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+def md5():
+	sa = []
+	for i in range(32):
+		sa.append(random.choice(seed))
+	tmp = "".join(sa)
+	hash = hashlib.md5()
+	hash.update(tmp.encode())
+	output = hash.hexdigest()
+	return output
+
+def main():
+	parser = argparse.ArgumentParser()
+
+	parser.add_argument("--host", "-i", help="The IP of host")
+	parser.add_argument("--port", "-p", help="The port number")
+	parser.add_argument("--is_seed", "-s", action="store_true", help="Set seed node")
+	args = parser.parse_args()	
+
+	file_name = "./bin/server.jar"
+	class_path = "edu.scu.coen317.server.DynamoNode"
+	host = args.host
+	port = args.port
+	hash = md5()
+	datadir = "/tmp/simple-dynamo/{hash}".format(hash=hash)
+
+	if (args.is_seed):
+		is_seed = "true"
+	else:
+		is_seed = "false"
+
+
+	command = "java -cp {file_name} {class_path} {host} {port} {datadir} {hash} {is_seed}".format(
+		file_name=file_name,
+		class_path=class_path,
+		host=host,
+		port=port,
+		datadir=datadir,
+		hash=hash,
+		is_seed=is_seed,
+	)	
+	print(command)
+	os.system(command)
+
+
+if __name__ == "__main__":
+    main()

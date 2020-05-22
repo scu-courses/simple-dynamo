@@ -1,0 +1,44 @@
+#!/usr/bin/python
+import os
+
+
+FILE_PATH = "/tmp/simple-dynamo/nodes"
+FILE_DIR = os.path.split(FILE_PATH)[0]
+
+
+STATUS_TEMPLATE = \
+"""
+{hash}
+ - host: {host}
+ - port: {port}
+ - pid: {pid}"""
+
+def main():
+    if not os.path.exists(FILE_PATH):
+        os.chdir(FILE_DIR)
+        os.system("touch nodes")
+        print("There is no node in the cluster")
+    else:   
+        with open(FILE_PATH) as f:
+            final_output = []
+            while True:
+                line = f.readline()
+                if not line:
+                    break
+                else:
+                    hash, host, port, pid = line.split(",")
+                    print_line = STATUS_TEMPLATE.format(
+                        hash=hash,
+                        host=host,
+                        port=port,
+                        pid=pid,
+                    )
+                    final_output.append(print_line)
+            print("================simple-dynamo-v1.0================")
+            print("{} dynamo nodes currently in the cluster".format(len(final_output)))
+            for status in final_output:
+                print(status)
+                
+
+if __name__ == "__main__":
+    main()

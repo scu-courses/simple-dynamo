@@ -1,0 +1,53 @@
+#!/usr/bin/python
+
+
+import os
+import argparse
+
+
+FILE_PATH = "/tmp/simple-dynamo/nodes"
+LOCK_FILE_PATH = "/tmp/simple-dynamo/nodes.lock"
+FILE_DIR = os.path.split(FILE_PATH)[0]
+
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--hash", help="The hash of the node will be removed")
+  parser.add_argument("--all", action="store_true", help="clear the cluster")
+  args = parser.parse_args()
+
+  if args.hash and args.all:
+    raise ValueError("Choose only one from hash and all")
+
+  if not os.path.exists(FILE_PATH):
+    raise ValueError("There is no Dynamo node in the cluster")
+
+  if os.path.exists(LOCK_FILE_PATH):
+    raise ValueError("nodes file currently locked")
+  else:
+    os.chdir(FILE_DIR)
+    os.system("touch nodes.lock")
+    with open(FILE_PATH) as r:
+      print("reading the file...")
+      lines = r.readlines()
+
+    with open(FILE_PATH, 'w') as w:
+      for line in lines:
+        if not line:
+          print("no line")
+          break
+        else:
+          hash, host, port, pid = line.split(",")
+          if args.all or hash==args.hash:
+            os.system("kill {pid}".format(pid=pid))
+            print("killed process {}".format(pid))
+          else:
+            w.write(line)
+
+    os.system("rm nodes.lock")
+
+
+if __name__ == "__main__":
+    main()          
+  
+
