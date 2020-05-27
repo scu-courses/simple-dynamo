@@ -14,9 +14,11 @@ public class NodeLocator {
     public static Set<Node> getNodes(ConcurrentSkipListSet<Node> members, String key, String selfHash) {
         Set<Node> nodes = new HashSet<>();
         String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
-
         Node tmp = new Node("", 0, HashFunctions.md5Hash(key), Integer.valueOf(pid));
         Node start = members.ceiling(tmp);
+        if (start == null) {
+            start = members.first();
+        }
         Set<Node> tailSet = members.tailSet(start, true);
 
         // get N replicas from members list
