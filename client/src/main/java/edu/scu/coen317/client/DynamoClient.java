@@ -37,6 +37,7 @@ public class DynamoClient {
             ClientResponse resp = execute(req);
             LOG.info("PUT request {}", resp != null ? "succeeded" : "failed");
         } catch (Exception e) {
+            e.printStackTrace();
             LOG.warn("PUT request got interrupted...");
         }
     }
@@ -49,6 +50,7 @@ public class DynamoClient {
             LOG.info("GET request {}", resp != null ? "succeeded" : "failed");
             return resp.getVal();
         } catch (Exception e) {
+            e.printStackTrace();
             LOG.warn("GET request got interrupted...");
         }
         return "";
@@ -73,9 +75,11 @@ public class DynamoClient {
 
             Set<Node> targets = NodeLocator.getNodes(NodeGlobalView.readAll(), req.getKey(), "");
             for (Node node : targets) {
+                LOG.debug("Sending client request to {} {}", node.getIp(), node.getPort());
                 ChannelFuture future = b.connect(node.getIp(), node.getPort()).await();
                 future.channel().closeFuture().sync();
                 if (future.isSuccess()) {
+                    LOG.debug("Client request to {} {} succeeded", node.getIp(), node.getPort());
                     return handler.getResponse();
                 }
             }
